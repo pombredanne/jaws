@@ -114,8 +114,7 @@ decode_entities_pp_trans = {
     ord(u'\x9f'): u'\u0178',
 }
 def decode_entities_pp(unicode_string):
-    """
-    Post-processing of HTML entity decoding. The entities &#128; to &#159;
+    """ Post-processing of HTML entity decoding. The entities &#128; to &#159;
     (&#x80; to &#x9f;) are not defined in HTML 4, but they are still used on
     the web and recognised by web browsers. This method converts some of the
     u'\x80' to u'\x9f' characters (which are likely to be incorrectly decoded
@@ -125,7 +124,7 @@ def decode_entities_pp(unicode_string):
     return unicode_string.translate(decode_entities_pp_trans)
 
 def remove_comments(root):
-    "Removes comment nodes."
+    """Removes comment nodes."""
     to_be_removed = []
     for node in root.iter():
         if node.tag == lxml.etree.Comment:
@@ -134,23 +133,15 @@ def remove_comments(root):
         node.drop_tree()
 
 def remove_non_content(root):
-    "Removes non content nodes."
-    to_be_removed = []
-    for node in root.iter():
-        if node.tag in ['head', 'script', 'style']:
-            to_be_removed.append(node)
-    for node in to_be_removed:
-        node.drop_tree()
-
-def preprocess(root):
-    "Converts HTML to DOM and removes unwanted parts."
-    remove_comments(root)
-    remove_non_content(root)
-    return root
+    """ Remove non content nodes such as <meta>, <head> and so on"""
+    tags = 'head link style script noscript meta iframe header footer'.split()
+    xpath = '|'.join('//' + tag for tag in tags)
+    for el in root.xpath(xpath):
+        if el.getparent() is not None:
+            el.drop_tree()
 
 class SaxPragraphMaker(ContentHandler):
-    """
-    A class for converting a HTML page represented as a DOM object into a list
+    """ A class for converting a HTML page represented as a DOM object into a list
     of paragraphs.
     """
 
@@ -413,7 +404,11 @@ def justext(html_text, stoplist, length_low=LENGTH_LOW_DEFAULT,
             root = lxml.html.fromstring(html_text)
     else:
         root = html_text
-    root = preprocess(root)
+
+    # preprocessing
+    remove_comments(root)
+    remove_non_content(root)
+
     paragraphs = make_paragraphs(root)
     classify_paragraphs(paragraphs, stoplist, length_low, length_high,
         stopwords_low, stopwords_high, max_link_density, no_headings)
