@@ -39,7 +39,7 @@ def analyse(url=None, debug=False):
     doc = Document.from_url(url)
     if debug:
         return Response(DEBUG_TEMPLATE % doc.paragraphs_detailed())
-    return doc.text
+    return Response(doc.html, content_type='text/plain')
 
 routes = route(
     GET('/analyse', qs(

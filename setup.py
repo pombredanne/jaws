@@ -18,4 +18,5 @@ setup(
     test_suite='tests',
     entry_points="""
     [console_scripts]
+    jaws = jaws:main
     """)
