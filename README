@@ -1,0 +1,28 @@
+jaws, a metadata extraction toolkit
+
+  >>> from jaws import Document
+  >>> doc = Document.from_url(
+  ...  'http://www.guardian.co.uk/'
+  ...  'commentisfree/2012/sep/10/alzheimers-junk-food-catastrophic-effect')
+
+extract content:
+
+  >>> doc.html
+  ...
+
+extract cover image:
+
+  >>> doc.image
+  ...
+
+extract author:
+
+  >>> doc.author
+  ...
+
+extract title:
+
+  >>> doc.title
+  ...
+
+there's also jaws.server.app WSGI application for exposing jaws as a web service
