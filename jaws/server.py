@@ -14,37 +14,30 @@ from . import Document
 
 __all__ = ('app',)
 
-DEBUG_TEMPLATE = """
-<!doctype>
-<style>
-.bad {
-  background: #FAD9E5;
-}
-.good {
-  background: #D9FAE0;
-}
-.main {
-  width: 600px;
-}
-p {
-  padding: 2px;
-  margin: 0;
-  margin-bottom: 5px;
-}
-</style>
-<div class="main">%s</div>
-"""
-
-def analyse(url=None, debug=False):
+def analyse(url=None, html=False, text=False, image=False, author=False,
+        title=False):
     doc = Document.from_url(url)
-    if debug:
-        return Response(DEBUG_TEMPLATE % doc.paragraphs_detailed())
-    return Response(doc.html, content_type='text/plain')
+    result = {}
+    if html:
+        result['html'] = doc.html
+    if text:
+        result['text'] = doc.text
+    if image:
+        result['image'] = doc.image
+    if author:
+        result['author'] = doc.author
+    if title:
+        result['title'] = doc.title
+    return result
 
 routes = route(
     GET('/analyse', qs(
             url=str,
-            debug=opt(bool),
+            image=opt(bool),
+            text=opt(bool),
+            html=opt(bool),
+            title=opt(bool),
+            author=opt(bool),
         ),
         analyse),
     )

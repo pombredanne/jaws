@@ -146,7 +146,7 @@ class Document(object):
         return extract_author(deepcopy(self.parsed))
 
     @cached_property
-    def cover_image(self):
+    def image(self):
         assert self.url is not None
         doc = deepcopy(self.parsed)
         paragraphs = self.analyse_paragraphs(doc)
@@ -340,6 +340,6 @@ options:
     elif args['--author']:
         print doc.author
     elif args['--image']:
-        print doc.cover_image
+        print doc.image
     else:
         print doc.html
