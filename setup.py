@@ -13,7 +13,17 @@ setup(
     packages=['jaws', 'justext'],
     include_package_data=True,
     zip_safe=False,
-    install_requires=[],
+    install_requires=[
+        'PIL>=1.1.7',
+        'WebOb>=1.2.3',
+        'chardet>=2.1.1',
+        'docopt>=0.5.0',
+        'lxml>=3.0',
+        'python-dateutil>=2.1',
+        'routr>=0.6',
+        'routr-schema>=0.1',
+        'schemify>=0.1',
+        ],
     package_data={'justext': ['stoplists/*.txt']},
     test_suite='tests',
     entry_points="""
