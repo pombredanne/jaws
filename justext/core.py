@@ -33,13 +33,13 @@ DEFAULT_ENCODING = 'utf-8'
 DEFAULT_ENC_ERRORS = 'replace'
 
 class JustextError(Exception):
-    "Base class for jusText exceptions."
+    """Base class for jusText exceptions."""
 
 class JustextInvalidOptions(JustextError):
     pass
 
 def get_stoplists():
-    "Returns a list of inbuilt stoplists."
+    """ Returns a list of inbuilt stoplists."""
     stoplists = []
     stoplists_dir = os.path.join(
         os.path.dirname(sys.modules['justext'].__file__), 'stoplists')
@@ -49,15 +49,14 @@ def get_stoplists():
     return stoplists
 
 def get_stoplist(language):
-    "Returns an inbuilt stoplist for the language as a set of words."
+    """ Returns an inbuilt stoplist for the language as a set of words."""
     stoplist_contents = pkgutil.get_data('justext',
         os.path.join('stoplists', language + '.txt'))
     return set([unicode(l.strip(), 'utf-8') for l in stoplist_contents.split('\n')])
 
 def decode_html(html_string, encoding=None, default_encoding=DEFAULT_ENCODING,
         errors=DEFAULT_ENC_ERRORS):
-    """
-    Converts a string containing an HTML page (html_string) into unicode.
+    """ Converts a string containing an HTML page (html_string) into unicode.
     Tries to guess character encoding from meta tags.
     """
     if encoding:
@@ -124,7 +123,7 @@ def decode_entities_pp(unicode_string):
     return unicode_string.translate(decode_entities_pp_trans)
 
 def remove_comments(root):
-    """Removes comment nodes."""
+    """ Removes comment nodes."""
     to_be_removed = []
     for node in root.iter():
         if node.tag == lxml.etree.Comment:
@@ -208,7 +207,7 @@ class SaxPragraphMaker(ContentHandler):
         self.br = False
 
 def make_paragraphs(root):
-    "Converts DOM into paragraphs."
+    """Converts DOM into paragraphs."""
     handler = SaxPragraphMaker()
     lxml.sax.saxify(root, handler)
     return handler.paragraphs
@@ -217,7 +216,7 @@ def classify_paragraphs(paragraphs, stoplist, length_low=LENGTH_LOW_DEFAULT,
         length_high=LENGTH_HIGH_DEFAULT, stopwords_low=STOPWORDS_LOW_DEFAULT,
         stopwords_high=STOPWORDS_HIGH_DEFAULT, max_link_density=MAX_LINK_DENSITY_DEFAULT,
         no_headings=NO_HEADINGS_DEFAULT):
-    "Context-free pragraph classification."
+    """Context-free pragraph classification."""
     for paragraph in paragraphs:
         length = len(paragraph['text'])
         stopword_count = 0
@@ -270,24 +269,21 @@ def _get_neighbour(i, paragraphs, ignore_neargood, inc, boundary):
     return 'bad'
 
 def get_prev_neighbour(i, paragraphs, ignore_neargood):
-    """
-    Return the class of the paragraph at the top end of the short/neargood
+    """ Return the class of the paragraph at the top end of the short/neargood
     paragraphs block. If ignore_neargood is True, than only 'bad' or 'good'
     can be returned, otherwise 'neargood' can be returned, too.
     """
     return _get_neighbour(i, paragraphs, ignore_neargood, -1, -1)
 
 def get_next_neighbour(i, paragraphs, ignore_neargood):
-    """
-    Return the class of the paragraph at the bottom end of the short/neargood
+    """ Return the class of the paragraph at the bottom end of the short/neargood
     paragraphs block. If ignore_neargood is True, than only 'bad' or 'good'
     can be returned, otherwise 'neargood' can be returned, too.
     """
     return _get_neighbour(i, paragraphs, ignore_neargood, 1, len(paragraphs))
 
 def revise_paragraph_classification(paragraphs, max_heading_distance=MAX_HEADING_DISTANCE_DEFAULT):
-    """
-    Context-sensitive paragraph classification. Assumes that classify_pragraphs
+    """ Context-sensitive paragraph classification. Assumes that classify_pragraphs
     has already been called.
     """
     # copy classes
@@ -359,8 +355,7 @@ def justext(html_text, stoplist, length_low=LENGTH_LOW_DEFAULT,
         max_heading_distance=MAX_HEADING_DISTANCE_DEFAULT, no_headings=NO_HEADINGS_DEFAULT,
         encoding=None, default_encoding=DEFAULT_ENCODING,
         enc_errors=DEFAULT_ENC_ERRORS):
-    """
-    Converts an HTML page into a list of classified paragraphs. Each paragraph
+    """ Converts an HTML page into a list of classified paragraphs. Each paragraph
     is represented as a dictionary with the following attributes:
 
     text:
@@ -416,12 +411,11 @@ def justext(html_text, stoplist, length_low=LENGTH_LOW_DEFAULT,
     return paragraphs
 
 def html_escape(text):
-    "Converts < and > to &lt; and &gt;."
+    """ Converts < and > to &lt; and &gt;."""
     return text.replace('<', '&lt;').replace('>', '&gt;')
 
 def output_default(paragraphs, fp=sys.stdout, no_boilerplate=True):
-    """
-    Outputs the paragraphs as:
+    """ Outputs the paragraphs as:
     <tag> text of the first paragraph
     <tag> text of the second paragraph
     ...
@@ -443,8 +437,7 @@ def output_default(paragraphs, fp=sys.stdout, no_boilerplate=True):
         print >> fp, line.encode('utf8')
 
 def output_detailed(paragraphs, fp=sys.stdout):
-    """
-    Same as output_default, but only <p> tags are used and the following
+    """ Same as output_default, but only <p> tags are used and the following
     attributes are added: class, cfclass and heading.
     """
     for paragraph in paragraphs:
