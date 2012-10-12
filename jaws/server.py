@@ -30,6 +30,10 @@ def analyse(url=None, html=False, text=False, image=False, author=False,
         result['title'] = doc.title
     return result
 
+def analyse_html(url=None):
+    doc = Document.from_url(url)
+    return Response(doc.html)
+
 routes = route(
     GET('/analyse', qs(
             url=str,
@@ -40,6 +44,7 @@ routes = route(
             author=opt(bool),
         ),
         analyse),
+    GET('/analyse.html', qs(url=str), analyse_html),
     )
 
 def app(environ, start_response):
