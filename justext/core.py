@@ -124,38 +124,6 @@ def decode_entities_pp(unicode_string):
     """
     return unicode_string.translate(decode_entities_pp_trans)
 
-def add_kw_tags(root):
-    """
-    Surrounds text nodes with <kw></kw> tags. To protect text nodes from
-    being removed with nearby tags.
-    """
-    blank_text = re.compile(u'^\s*$', re.U)
-    nodes_with_text = []
-    nodes_with_tail = []
-    for node in root.iter():
-        if node.text and node.tag not in (lxml.etree.Comment, lxml.etree.ProcessingInstruction):
-            nodes_with_text.append(node)
-        if node.tail:
-            nodes_with_tail.append(node)
-    for node in nodes_with_text:
-        if blank_text.match(node.text):
-            node.text = None
-        else:
-            kw = lxml.etree.Element('kw')
-            kw.text = node.text
-            node.text = None
-            node.insert(0, kw)
-    for node in nodes_with_tail:
-        if blank_text.match(node.tail):
-            node.tail = None
-        else:
-            kw = lxml.etree.Element('kw')
-            kw.text = node.tail
-            node.tail = None
-            parent = node.getparent()
-            parent.insert(parent.index(node) + 1, kw)
-    return root
-
 def remove_comments(root):
     "Removes comment nodes."
     to_be_removed = []
@@ -163,30 +131,21 @@ def remove_comments(root):
         if node.tag == lxml.etree.Comment:
             to_be_removed.append(node)
     for node in to_be_removed:
-        parent = node.getparent()
-        del parent[parent.index(node)]
+        node.drop_tree()
 
-def preprocess(html_text, encoding=None, default_encoding=DEFAULT_ENCODING,
-        enc_errors=DEFAULT_ENC_ERRORS):
-    "Converts HTML to DOM and removes unwanted parts."
-    uhtml_text = decode_html(html_text, encoding, default_encoding, enc_errors)
-    try:
-        root = lxml.html.fromstring(uhtml_text)
-    except ValueError: # Unicode strings with encoding declaration are not supported.
-        # for XHTML files with encoding declaration, use the declared encoding
-        root = lxml.html.fromstring(html_text)
-    # add <kw> tags, protect text nodes
-    add_kw_tags(root)
-    # remove comments
-    remove_comments(root)
-    # remove head, script and style
+def remove_non_content(root):
+    "Removes non content nodes."
     to_be_removed = []
     for node in root.iter():
         if node.tag in ['head', 'script', 'style']:
             to_be_removed.append(node)
     for node in to_be_removed:
-        parent = node.getparent()
-        del parent[parent.index(node)]
+        node.drop_tree()
+
+def preprocess(root):
+    "Converts HTML to DOM and removes unwanted parts."
+    remove_comments(root)
+    remove_non_content(root)
     return root
 
 class SaxPragraphMaker(ContentHandler):
@@ -444,8 +403,17 @@ def justext(html_text, stoplist, length_low=LENGTH_LOW_DEFAULT,
     dom_path:
       A dom path to the paragraph in the originial HTML page.
     """
-    root = preprocess(html_text, encoding=encoding,
-        default_encoding=default_encoding, enc_errors=enc_errors)
+    if isinstance(html_text, basestring):
+        html_text = decode_html(html_text, encoding, default_encoding, enc_errors)
+        try:
+            root = lxml.html.fromstring(uhtml_text)
+        except ValueError:
+            # Unicode strings with encoding declaration are not supported.
+            # for XHTML files with encoding declaration, use the declared encoding
+            root = lxml.html.fromstring(html_text)
+    else:
+        root = html_text
+    root = preprocess(root)
     paragraphs = make_paragraphs(root)
     classify_paragraphs(paragraphs, stoplist, length_low, length_high,
         stopwords_low, stopwords_high, max_link_density, no_headings)
