@@ -476,7 +476,8 @@ def output_default(paragraphs, fp=sys.stdout, no_boilerplate=True):
                 continue
             else:
                 tag = 'b'
-        print >> fp, '<%s> %s' % (tag, html_escape(paragraph['text'].strip()))
+        line = '<%s> %s' % (tag, html_escape(paragraph['text'].strip()))
+        print >> fp, line.encode('utf8')
 
 def output_detailed(paragraphs, fp=sys.stdout):
     """
@@ -484,9 +485,10 @@ def output_detailed(paragraphs, fp=sys.stdout):
     attributes are added: class, cfclass and heading.
     """
     for paragraph in paragraphs:
-        print >> fp, '<p class="%s" cfclass="%s" heading="%i"> %s' % (
+        line = '<p class="%s" cfclass="%s" heading="%i"> %s' % (
             paragraph['class'], paragraph['cfclass'],
             int(paragraph['heading']), html_escape(paragraph['text'].strip()))
+        print >> fp, line.encode('utf8')
 
 def output_krdwrd(paragraphs, fp=sys.stdout):
     """
@@ -507,7 +509,8 @@ def output_krdwrd(paragraphs, fp=sys.stdout):
         else:
             cls = 1
         for text_node in paragraph['text_nodes']:
-            print >> fp, '%i\t%s' % (cls, text_node.strip())
+            line = '%i\t%s' % (cls, text_node.strip())
+            print >> fp, line.encode('utf8')
 
 def usage():
     return """Usage: %(progname)s -s STOPLIST [OPTIONS] [HTML_FILE]
