@@ -139,6 +139,21 @@ def remove_non_content(root):
         if el.getparent() is not None:
             el.drop_tree()
 
+class XPathPart(object):
+
+    def __init__(self, name, idx):
+        self.name = name
+        self.idx = idx
+        self.children = {}
+
+    def next(self, name):
+        if name in self.children:
+            idx = self.children[name] + 1
+        else:
+            idx = 1
+        self.children[name] = idx
+        return XPathPart(name, idx)
+
 class SaxPragraphMaker(ContentHandler):
     """ A class for converting a HTML page represented as a DOM object into a list
     of paragraphs.
@@ -146,6 +161,7 @@ class SaxPragraphMaker(ContentHandler):
 
     def __init__(self):
         self.dom = []
+        self.xpath = []
         self.paragraphs = []
         self.paragraph = {}
         self.link = False
@@ -159,6 +175,8 @@ class SaxPragraphMaker(ContentHandler):
             self.paragraphs.append(self.paragraph)
         self.paragraph = {
             'dom_path': '.'.join(self.dom),
+            'xpath': '/' + '/'.join(
+                '%s[%d]' % (x.name, x.idx) for x in self.xpath),
             'text_nodes': [],
             'word_count': 0,
             'linked_char_count': 0,
@@ -168,6 +186,10 @@ class SaxPragraphMaker(ContentHandler):
     def startElementNS(self, name, qname, attrs):
         dummy_uri, name = name
         self.dom.append(name)
+        if self.xpath:
+            self.xpath.append(self.xpath[-1].next(name))
+        else:
+            self.xpath.append(XPathPart(name, 1))
         if name in PARAGRAPH_TAGS or (name == 'br' and self.br):
             if name == 'br':
                 # the <br><br> is a paragraph separator and should
@@ -187,6 +209,7 @@ class SaxPragraphMaker(ContentHandler):
     def endElementNS(self, name, qname):
         dummy_uri, name = name
         self.dom.pop()
+        self.xpath.pop()
         if name in PARAGRAPH_TAGS:
             self._start_new_pragraph()
         if name == 'a':
@@ -388,6 +411,9 @@ def justext(html_text, stoplist, length_low=LENGTH_LOW_DEFAULT,
 
     dom_path:
       A dom path to the paragraph in the originial HTML page.
+
+    xpath:
+      A XPath expression which points to the paragraph.
     """
     if isinstance(html_text, basestring):
         html_text = decode_html(html_text, encoding, default_encoding, enc_errors)
@@ -441,9 +467,12 @@ def output_detailed(paragraphs, fp=sys.stdout):
     attributes are added: class, cfclass and heading.
     """
     for paragraph in paragraphs:
-        line = '<p class="%s" cfclass="%s" heading="%i"> %s' % (
+        line = '<p class="%s" cfclass="%s" heading="%i" xpath="%s"> %s' % (
             paragraph['class'], paragraph['cfclass'],
-            int(paragraph['heading']), html_escape(paragraph['text'].strip()))
+            int(paragraph['heading']),
+            paragraph['xpath'],
+            html_escape(paragraph['text'].strip()),
+            )
         print >> fp, line.encode('utf8')
 
 def output_krdwrd(paragraphs, fp=sys.stdout):
