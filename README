@@ -26,3 +26,5 @@ extract title:
   ...
 
 there's also jaws.server.app WSGI application for exposing jaws as a web service
+
+development takes place at http://github.com/dreamindustries/jaws
